@@ -1,0 +1,17 @@
+your edits: body shop.notify.notify_email
+1. shop/notify.py:16  [calls it | asserted · dispatch]
+   ```python
+     14  def dispatch(channel: str, message: str) -> None:
+     15      handler = getattr(sys.modules[__name__], f"notify_{channel}")
+   → 16      handler(message)
+   ```
+further away (4 place(s), reached through the places above; no code shown):
+   shop/receipts.py:5  send_receipt  [hop 2]
+   shop/events.py:11  EventBus.emit  [hop 3]
+   shop/service.py:23  OrderService.place  [hop 4]
+   shop/api.py:10  place_order  [hop 5]
+tests that reach it (1; no code shown):
+   tests/test_api.py:5  test_place_order_sends_email_receipt
+verified: ✓ (7 edge(s) looked up again)
+bound: 2 unresolved call(s) inside — a lower bound
+to resolve: nothing — 2 site(s) the answer stopped at are settled by links

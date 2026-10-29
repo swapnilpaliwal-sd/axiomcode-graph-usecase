@@ -1,0 +1,1 @@
+axiomcode link: rejected — no by-name or one-of-a-set lead at shop/events.py:13 reaches notify_sms

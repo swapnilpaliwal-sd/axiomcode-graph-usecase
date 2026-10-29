@@ -1,0 +1,73 @@
+where this task's words land: shop (of 2 scope(s) this graph offers: shop, tests)
+  no --in was given, so NOTHING below is narrowed to it — pass --in <path> to narrow.
+
+task terms: placing · order · send · receipt
+
+how it runs — the call flow from this task's entry points, every callee in the order the calls are written, to depth 4 (→ resolved call, ⇢ one of a set; ⚠ a call the graph could not resolve — read that body to follow it):
+  started at the entry points this task's words matched; if the mechanism begins elsewhere, `--from <name>` starts the flow there
+   1 send_receipt                                                  shop/receipts.py:5
+        entry point
+            5 | def send_receipt(order):
+            6 |     dispatch(order.channel, f"Order {order.id}: {order.total:.2f}")
+   2   → dispatch                                                  shop/notify.py:14
+          called at L6: dispatch(order.channel, f"Order {order.id}: {order.total:.2f}")
+             14 | def dispatch(channel: str, message: str) -> None:
+             15 |     handler = getattr(sys.modules[__name__], f"notify_{channel}")
+             16 |     handler(message)
+   3     ⇢ notify_email                                            shop/notify.py:6
+            called at L16: handler(message)
+                6 | def notify_email(message: str) -> None:
+                7 |     SENT.append(("email", message.strip()))
+   4     ⇢ notify_sms                                              shop/notify.py:10
+            called at L16: handler(message)
+               10 | def notify_sms(message: str) -> None:
+               11 |     SENT.append(("sms", message[:160]))
+   5 place_order                                                   shop/api.py:10
+        entry point
+           10 | def place_order(request: dict) -> dict:
+           11 |     service = make_service()
+           12 |     order = service.place(request["sku"], request["qty"], request["channel"])
+           13 |     return {"id": order.id, "total": order.total}
+   6   → make_service                                              shop/api.py:6
+          called at L11: service = make_service()
+              6 | def make_service() -> OrderService:
+              7 |     return OrderService(CardGateway(), bus)
+   7     → OrderService.__init__                                   shop/service.py:18
+            called at L7: return OrderService(CardGateway(), bus)
+               18 |     def __init__(self, payment: PaymentGateway, events: EventBus):
+               19 |         self.payment = payment
+               20 |         self.events = events
+               21 |         self._next = 1
+   8   → OrderService.place                                        shop/service.py:23
+          called at L12: order = service.place(request["sku"], request["qty"], request["channel
+             23 |     def place(self, sku: str, qty: int, channel: str) -> Order:
+             24 |         total = price_for(sku) * qty
+             25 |         self.payment.charge(total)
+             26 |         order = Order(self._next, sku, qty, total, channel)
+             27 |         self._next += 1
+             28 |         self.events.emit("order.placed", order)
+             29 |         return order
+   9     → price_for                                               shop/pricing.py:4
+            called at L24: total = price_for(sku) * qty
+                4 | def price_for(sku: str) -> float:
+                5 |     return apply_discount(PRICES[sku])
+  10       → apply_discount                                        shop/pricing.py:8
+              called at L5: return apply_discount(PRICES[sku])
+                  8 | def apply_discount(amount: float) -> float:
+                  9 |     return round(amount * 0.9, 2) if amount > 10 else amount
+  11     → CardGateway.charge                                      shop/payments.py:10
+            called at L25: self.payment.charge(total)
+               10 |     def charge(self, amount: float) -> str:
+               11 |         return f"card:{amount:.2f}"
+  12     → EventBus.emit                                           shop/events.py:11
+            called at L28: self.events.emit("order.placed", order)
+               11 |     def emit(self, topic: str, payload):
+               12 |         for fn in self._subs[topic]:
+               13 |             fn(payload)
+           ↺ send_receipt (step 1)
+
+9 file(s) lie within 3 hops of the entry points; `--budget N` lists them
+
+bound: this follows call edges and names. Anything related through what the graph does not encode — a constant, a config key, a string, a framework convention, reflection — will not appear here however relevant it is.
+  narrow with `impact <name> --in <path>` or `path '*' <name> --in <path>`.
+next: answer from the steps' code shown above, in order; open a file only for a step whose body was cut (`… more line(s)`) or a call the flow could not follow. At every ⚠ the graph lost a call: read that body and follow the unresolved name (`path <name> '*'` continues from it).

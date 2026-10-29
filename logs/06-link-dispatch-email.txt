@@ -1,0 +1,1 @@
+linked shop/notify.py:16:5 `handler` → notify_email [asserted]; return type unknown, calls on its result stay unknown  — applied to 1 graph(s) in 6 ms

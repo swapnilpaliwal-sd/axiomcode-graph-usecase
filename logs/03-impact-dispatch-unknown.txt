@@ -1,0 +1,18 @@
+change: dispatch   [method]
+reads or uses it (1 callable(s): 1 resolved):
+    [resolved] send_receipt   shop/receipts.py:6   — calls it
+reaches those through resolved calls: 2 more callable(s) in 1 file(s)
+    by hop: 1:1, 2:1
+    source files (1, nearest first): shop/receipts.py (1)
+    how each is reached (→ an exact call, ⇢ one of a set / a dispatch choice; nearest first):
+      shop/receipts.py: send_receipt
+    entry points (1: a framework enters them, for the reason given, or nothing resolved calls them — a framework, a runner, reflection — or a test; 0 hops = touches it directly), nearest first:
+       2 hop(s)  receipts.<module>   shop/receipts.py:1
+tests: 0 of 4 test method(s) reach the change
+verified: 1 printed edge(s) looked up again in the graph, all present
+bound: 1 unresolved call(s) inside the impacted set — what those reach is unknown, so the set is a lower bound
+to resolve: 1 call site(s) the answer stopped at — what each reaches is not in it:
+    shop/notify.py:16:5  handler(message)  [computed_attribute_name:notify_*]
+        candidates: notify_email shop/notify.py:6 (named notify_…, the constant part of the computed name); notify_sms shop/notify.py:10 (named notify_…, the constant part of the computed name)
+    read the call first; when it makes the target certain: `axiomcode link <file:line:col> <target>` (a candidate is a lead, never link it by its rank)
+next: read shop/notify.py:14, then only these 1 place(s) bound to it: shop/receipts.py:6

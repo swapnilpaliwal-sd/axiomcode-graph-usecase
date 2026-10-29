@@ -1,0 +1,4 @@
+# axiomcode links: call edges asserted where the graph could not resolve the call. Written by `axiomcode link`; one per line, tab-separated: file line line_sha callee caller target target_file by at col ncol not
+shop/events.py	13	5e1fa3c6d873	fn	EventBus.emit	send_receipt	shop/receipts.py	swapnilpaliwal	2026-10-29T14:03:37	13	0
+shop/notify.py	16	c305c8c91dd4	handler	dispatch	notify_email	shop/notify.py	swapnilpaliwal	2026-10-29T14:03:37	5	0
+shop/notify.py	16	c305c8c91dd4	handler	dispatch	notify_sms	shop/notify.py	swapnilpaliwal	2026-10-29T14:03:37	5	0

@@ -1,0 +1,12 @@
+building python graph for . … (java 0 · typescript 0 · python 12 · javascript 0 · csharp 0 · web 0 files)
+indexed .axiomcode/out/python/graph.sqlite [python]: symbols=54 refs=142 literals=38 comments=1 nested_types=0
+tier                 edges
+known_edge           13
+boundary_lib         11
+ambiguous_unknown    5
+callback_registered  1
+datalog rules ready: 4/4 compiled (impact.dl=packaged, path-every.dl=packaged, path-opt.dl=packaged, path.dl=packaged)
+graph at .axiomcode/out/graph.sqlite
+real 4.32
+user 2.11
+sys 1.12

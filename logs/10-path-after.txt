@@ -1,0 +1,37 @@
+1. shop/api.py:12  [resolved · hop 1/5 place_order → OrderService.place]
+   ```python
+     10  def place_order(request: dict) -> dict:
+     11      service = make_service()
+   → 12      order = service.place(request["sku"], request["qty"], request["channel"])
+     13      return {"id": order.id, "total": order.total}
+   ```
+2. shop/service.py:28  [resolved · hop 2/5 OrderService.place → EventBus.emit]
+   ```python
+     23      def place(self, sku: str, qty: int, channel: str) -> Order:
+     24          total = price_for(sku) * qty
+     25          self.payment.charge(total)
+     26          order = Order(self._next, sku, qty, total, channel)
+     27          self._next += 1
+   → 28          self.events.emit("order.placed", order)
+     29          return order
+   ```
+3. shop/events.py:13  [asserted · hop 3/5 EventBus.emit → send_receipt]
+   ```python
+     11      def emit(self, topic: str, payload):
+     12          for fn in self._subs[topic]:
+   → 13              fn(payload)
+   ```
+4. shop/receipts.py:6  [resolved · hop 4/5 send_receipt → dispatch]
+   ```python
+     5  def send_receipt(order):
+   → 6      dispatch(order.channel, f"Order {order.id}: {order.total:.2f}")
+   ```
+5. shop/notify.py:16  [asserted · hop 5/5 dispatch → notify_email]
+   ```python
+     14  def dispatch(channel: str, message: str) -> None:
+     15      handler = getattr(sys.modules[__name__], f"notify_{channel}")
+   → 16      handler(message)
+   ```
+verified: ✓ (5 edge(s) looked up again)
+bound: the methods on the nearest chain contain 2 unresolved call(s) — other chains may exist that the graph cannot see
+to resolve: nothing — 2 site(s) the answer stopped at are settled by links

@@ -1,0 +1,19 @@
+1. shop/payments.py:6  [must change · declares the same member in a supertype (a name match: this graph has no override table)]
+   ```python
+   → 6      def charge(self, amount: float) -> str: ...
+   ```
+2. shop/service.py:25  [resolved · OrderService.place]
+   ```python
+     23      def place(self, sku: str, qty: int, channel: str) -> Order:
+     24          total = price_for(sku) * qty
+   → 25          self.payment.charge(total)
+     26          order = Order(self._next, sku, qty, total, channel)
+     27          self._next += 1
+     28          self.events.emit("order.placed", order)
+     29          return order
+   ```
+further away (1 place(s), reached through the places above; no code shown):
+   shop/api.py:10  place_order  [hop 2]
+tests that reach it (1; no code shown):
+   tests/test_api.py:5  test_place_order_sends_email_receipt
+verified: ✓ (4 edge(s) looked up again)

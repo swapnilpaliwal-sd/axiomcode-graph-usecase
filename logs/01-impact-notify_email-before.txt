@@ -1,0 +1,6 @@
+change: notify_email   [method]
+directly touches it: nothing the graph can see — the declaration is used only where it is declared, or through something the parser did not record
+reaches those through resolved calls: 0 more callable(s) in 0 file(s)
+tests: 0 of 4 test method(s) reach the change
+verified: nothing to check — no entry in this answer claims a CALL EDGE, so there is none to look up
+next: nothing resolved depends on it, so the change is local — read shop/notify.py:6 and edit there

@@ -1,0 +1,8 @@
+no chain of resolved calls connects place_order and notify_email in either direction (searched 14 edges, depth ≤ 40)
+  and no unresolved site would connect them by name either — but place_order makes a call whose callee is a value, not a name (below): any function passed, stored or exported may be what it calls, so the connection is UNKNOWN, not absent
+  place_order reaches 1 call(s) through a value:
+    `fn()` in EventBus.emit at shop/events.py:13 — the callee is a loop variable
+to resolve: 1 call site(s) the answer stopped at — what each reaches is not in it:
+    shop/events.py:13:13  fn(payload)  [no_rule]
+        candidates: no candidate
+    read the call first; when it makes the target certain: `axiomcode link <file:line:col> <target>` (a candidate is a lead, never link it by its rank)

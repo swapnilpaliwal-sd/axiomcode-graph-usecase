@@ -1,0 +1,13 @@
+1. tests/test_api.py:5  [test · asserted · hop 6]
+   ```python
+   → 5  def test_place_order_sends_email_receipt():
+     6      notify.SENT.clear()
+     7      out = place_order({"sku": "book", "qty": 2, "channel": "email"})
+     8      assert out["total"] == 21.6
+     9      assert notify.SENT == [("email", "Order 1: 21.60")]
+   ```
+bound: a lower bound: a test reached only by reflection, a service loader, a framework instantiating by name, a subprocess, or a case built at runtime is not here
+run: pytest tests/test_api.py
+real 11.62
+user 0.35
+sys 0.16

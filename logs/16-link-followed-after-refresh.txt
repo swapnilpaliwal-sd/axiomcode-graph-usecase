@@ -1,0 +1,4 @@
+3 asserted link(s) in axiomcode-links.tsv:
+    2. [applied] shop/events.py:13:13  → send_receipt  — return type unknown, calls on its result stay unknown
+    3. [moved] shop/notify.py:16:5 (now line 18)  → notify_email  — followed by its text from line 16 to 18; return type unknown, calls on its result stay unknown
+    4. [moved] shop/notify.py:16:5 (now line 18)  → notify_sms  — followed by its text from line 16 to 18; return type unknown, calls on its result stay unknown
