@@ -1,0 +1,8 @@
+$ axiomcode index
+building typescript graph for . … (java 0 · typescript 3 · python 0 · javascript 0 · csharp 0 · web 0 files)
+indexed .axiomcode/out/typescript/graph.sqlite [typescript]: symbols=7 refs=12 literals=0 comments=0 nested_types=0
+tier               edges
+known_edge         3
+ambiguous_unknown  2
+datalog rules ready: 4/4 compiled (impact.dl=packaged, path-every.dl=packaged, path-opt.dl=packaged, path.dl=packaged)
+graph at .axiomcode/out/graph.sqlite

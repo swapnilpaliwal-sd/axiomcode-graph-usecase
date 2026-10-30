@@ -1,1 +1,0 @@
-linked src/hooks.ts:10:32 `hook` → auditDeletion [asserted]; return type unknown, calls on its result stay unknown  — applied to 1 graph(s) in 6 ms
