@@ -1,4 +1,7 @@
-$ sqlite3 -header -column .axiomcode/out/graph.sqlite < rule.sql
-breaks_the_spec  file            line
----------------  --------------  ----
-purgeInactive    src/cleanup.ts  3   
+$ axiomcode index
+$ sh check.sh
+---------------
+breaks_the_spec
+===============
+purgeInactive	src/cleanup.ts	3
+===============

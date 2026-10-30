@@ -8,7 +8,7 @@ and check it by hand. Every output shown below is **real**. It was copied from t
 and you can reproduce all of it in about a minute.
 
 > **Second example: [Spec → rule → check](spec-to-rule/README.md).** One sentence of a spec ("every function that
-> removes a user also writes to the audit log") becomes one SQL query over the graph, which lists the functions that
+> removes a user also writes to the audit log") becomes one Datalog rule over the graph, which lists the functions that
 > break it. Three tiny TypeScript files.
 
 By the end you will know:
@@ -28,7 +28,7 @@ By the end you will know:
 | **Where do you see the change reflected?** | [Where a change shows up](#where-a-change-shows-up) below; before/after comparison in [S8](#s8-ask-again-the-same-questions-now-have-answers); diagrams [before](diagrams/01-before-link.png) / [after](diagrams/02-after-link.png) |
 | **What kinds of things is it good for?** | [What it is for](#what-it-is-for): impact of a change, call chains, test selection, onboarding, closing gaps |
 | **How is certainty communicated to the agent?** | Graph → agent: every row is labelled `resolved` / `registered` / `asserted`, and gaps come back under `to resolve:` with a `bound:` warning ([Part 1](#three-kinds-of-edges), [S6](#s6-where-exactly-did-the-graph-stop), [Part 4](#part-4-reading-certainty-a-reference)). Agent → graph: `axiomcode link` records a call the agent is certain of, and `not:` rejects a lead ([S7](#s7-the-agent-closes-the-gap-with-axiomcode-link), [S11](#s11-undo-a-link-and-what-link-refuses)). Instructions to give the agent: [Part 5](#part-5-teach-your-agent) |
-| **Can it check a spec, not just answer questions?** | [spec-to-rule/](spec-to-rule/README.md): one requirement becomes one SQL query over the graph, run after every build |
+| **Can it check a spec, not just answer questions?** | [spec-to-rule/](spec-to-rule/README.md): one requirement becomes one Datalog rule over the graph, run after every build |
 | **Real examples and logs?** | Every output is copied from [`logs/`](logs/) (19 files, one per command), and each claim is checked against `pytest` under **Check it yourself** |
 
 ## What it is for
@@ -43,7 +43,7 @@ By the end you will know:
 | find calls that text search misses (interfaces, dependency injection, callbacks) | `axiomcode impact <name>` | S3 |
 | record where an unresolved call goes, once the code makes it certain | `axiomcode link <file:line:col> <target>` | S7, S10, S11 |
 | browse the whole codebase as one interactive page | `axiomcode graph` | FAQ |
-| check a written requirement against the code after every build | a SQL rule over `.axiomcode/out/graph.sqlite` | [spec-to-rule](spec-to-rule/README.md) |
+| check a written requirement against the code after every build | a Datalog rule over the graph's functions and calls | [spec-to-rule](spec-to-rule/README.md) |
 
 ## Where a change shows up
 

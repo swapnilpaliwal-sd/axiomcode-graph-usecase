@@ -1,2 +1,6 @@
-$ sqlite3 -header -column .axiomcode/out/graph.sqlite < rule.sql
-(no rows: the spec holds)
+$ axiomcode index
+$ sh check.sh
+---------------
+breaks_the_spec
+===============
+===============

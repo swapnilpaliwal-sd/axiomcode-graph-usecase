@@ -1,0 +1,19 @@
+// Spec: every function that removes a user also writes to the audit log.
+
+// Facts the graph exports (check.sh writes them from graph.sqlite).
+.decl method(id: symbol, name: symbol, file: symbol, line: number)
+.input method
+.decl calls(caller: symbol, callee: symbol)
+.input calls
+
+// f calls a function named `name`.
+.decl calls_named(f: symbol, name: symbol)
+calls_named(f, name) :- calls(f, t), method(t, name, _, _).
+
+// The rule: calls removeUser, never calls audit.
+.decl breaks_the_spec(name: symbol, file: symbol, line: number)
+breaks_the_spec(n, file, line) :-
+    method(f, n, file, line),
+    calls_named(f, "removeUser"),
+    !calls_named(f, "audit").
+.output breaks_the_spec(IO=stdout)
