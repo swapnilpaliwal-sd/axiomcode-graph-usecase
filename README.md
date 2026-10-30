@@ -66,7 +66,7 @@ By the end you will know:
 - [Part 3: Scenarios](#part-3-scenarios)
   - [S1. Build the graph](#s1-build-the-graph)
   - [S2. "If I change `price_for`, what is affected?"](#s2-if-i-change-price_for-what-is-affected)
-  - [S3. "Who calls `CardGateway.charge`?" (grep finds nothing)](#s3-who-calls-cardgatewaycharge-grep-finds-nothing)
+  - [S3. "Who calls `CardGateway.charge`?" (grep finds pieces, not the link)](#s3-who-calls-cardgatewaycharge-grep-finds-pieces-not-the-link)
   - [S4. "How does placing an order send the receipt?"](#s4-how-does-placing-an-order-send-the-receipt)
   - [S5. The trap: `notify_email` looks safe to change](#s5-the-trap-notify_email-looks-safe-to-change)
   - [S6. Where exactly did the graph stop?](#s6-where-exactly-did-the-graph-stop)
@@ -281,18 +281,28 @@ codebase the graph also gives you the callers several hops away and the tests be
 
 ---
 
-### S3. "Who calls `CardGateway.charge`?" (grep finds nothing)
+### S3. "Who calls `CardGateway.charge`?" (grep finds pieces, not the link)
 
-**Situation.** You want to change how card payments work. You search the code for `CardGateway.charge`:
+**Situation.** You want to change how card payments work. An agent searches for the class and the method
+separately:
 
 ```console
-$ grep -rn "CardGateway.charge" shop tests
-$                                   # nothing
+$ grep -rn "CardGateway" shop tests
+shop/api.py:2:from shop.payments import CardGateway
+shop/api.py:7:    return OrderService(CardGateway(), bus)
+shop/payments.py:9:class CardGateway(PaymentGateway):
+
+$ grep -rn "charge(" shop tests
+shop/service.py:25:        self.payment.charge(total)
+shop/payments.py:6:    def charge(self, amount: float) -> str: ...
+shop/payments.py:10:    def charge(self, amount: float) -> str:
 ```
 
-Nothing found. Yet the card **is** charged on every order. The code never writes `CardGateway.charge`. It writes
-`self.payment.charge(total)`, where `payment` is declared as the abstract `PaymentGateway`, and `api.py`
-passes in a `CardGateway`.
+Every piece is there, but nothing joins them. The one call, `self.payment.charge(total)`, does not say
+`CardGateway`: `payment` is declared as the abstract `PaymentGateway`. To learn that this call reaches
+`CardGateway.charge`, the agent must read `service.py` for the type of `payment`, then `api.py` to see a
+`CardGateway` passed in. In a real codebase, `charge(` also matches refunds, other gateways and test fakes, and
+that reading multiplies.
 
 **Run**
 
@@ -325,7 +335,8 @@ verified: ✓ (4 edge(s) looked up again)
 **Check it yourself.** Make `CardGateway.charge` raise an exception and run `python3 -B -m pytest -q`: only
 `test_api` fails.
 
-**Takeaway.** The graph follows calls through interfaces and dependency injection, where text search is blind.
+**Takeaway.** Grep finds the call and the class; the graph already knows which call reaches which class, through
+interfaces and dependency injection, so the agent gets the answer in one step instead of reading three files.
 
 ---
 
