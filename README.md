@@ -49,7 +49,7 @@ Every row in an answer carries a label. An agent should read these labels before
 | `⇢` in `context` | one-of-a-set | One of several targets a dispatch can choose | Expect any of them at runtime |
 | `[must change · … a name match]` | — | Same member declared in a supertype; matched by name | Check it, it is usually right |
 | `[asserted]` | `- - →` dashed | An agent recorded it with `axiomcode link` | Trust it as much as you trust whoever linked it |
-| `to resolve:` + `candidates:` | `···?` dotted | A call through a value. The graph does not know the target. Candidates are *leads* | Read the call. Link it only if the code makes it certain |
+| `to resolve:` + `candidates:` | `···?` dotted red, no arrowhead | A call through a value. The graph does not know the target. Candidates are *leads* | Read the call. Link it only if the code makes it certain |
 | `bound: … lower bound` | — | The answer may miss things behind the unresolved calls | Do not treat the list as complete |
 | `verified: ✓ (N edge(s) looked up again)` | — | Every printed edge was re-checked against the graph | — |
 
@@ -120,9 +120,11 @@ links in scenario 6, which is why steps 3 and 4 and the `↺` appear.)
 
 ## The gap, and how an agent bridges it
 
-![before](diagrams/01-before-link.png)
-
 ## 4. The gap: impact sees nothing
+
+The red dotted lines are the two calls the graph cannot resolve. `notify_email` and `notify_sms` are greyed out because nothing the graph can see calls them.
+
+![before](diagrams/01-before-link.png)
 
 `notify_email` sends every email receipt, and `test_api` exercises it. But it is only ever called through
 `getattr(...)(message)`:
@@ -168,6 +170,8 @@ suspects (candidates). It does **not** guess. Full logs: [`02`](logs/02-path-bef
 
 ![workflow](diagrams/03-link-workflow.png)
 
+Step 4 is drawn in purple and dashed, the same style as the edges it creates in the diagram below.
+
 The agent reads the two sites:
 
 - `events.py:13` `fn(payload)` iterates `self._subs[topic]`. The only `subscribe` in the repo is
@@ -189,6 +193,8 @@ linked shop/notify.py:16:5 `handler` → notify_sms [asserted]; … — applied 
 No rebuild: each link is applied in a few milliseconds.
 
 ![after](diagrams/02-after-link.png)
+
+The red dotted gaps are gone: each is now a purple dashed `[asserted]` edge.
 
 ## 7. Ask again: the same questions now have answers
 

@@ -90,8 +90,11 @@ def legend(ax, tiers=("resolved", "registered", "asserted", "unknown")):
     for i, t in enumerate(tiers):
         s = STYLE[t]
         x, y = -0.8 + (i % 2) * 5.0, -0.75 - (i // 2) * 0.45
-        ax.add_patch(FancyArrowPatch((x, y), (x + 0.7, y), arrowstyle="-|>", mutation_scale=12, color=s["color"],
+        head = "-" if t == "unknown" else "-|>"
+        ax.add_patch(FancyArrowPatch((x, y), (x + 0.7, y), arrowstyle=head, mutation_scale=12, color=s["color"],
                                      linestyle=s["ls"], lw=s["lw"]))
+        if t == "unknown":
+            ax.text(x + 0.66, y, "?", va="center", fontsize=12, weight="bold", color=s["color"])
         ax.text(x + 0.85, y, words[t], va="center", fontsize=9.5, color=INK)
 
 
@@ -146,15 +149,18 @@ def workflow(path):
              ("5. ask again", "edges show\n[asserted]")]
     for i, (h, b) in enumerate(steps):
         x = 0.3 + i * 2.75
+        hot = h == "4. link"
         ax.add_patch(FancyBboxPatch((x, 0.9), 2.3, 1.8, boxstyle="round,pad=0.04,rounding_size=0.15",
-                                    fc="#f6f8fa", ec=INK, lw=1.3))
+                                    fc="#fbefff" if hot else "#f6f8fa",
+                                    ec=STYLE["asserted"]["color"] if hot else INK, lw=2.2 if hot else 1.3,
+                                    linestyle=STYLE["asserted"]["ls"] if hot else "-"))
         ax.text(x + 1.15, 2.3, h, ha="center", fontsize=11, weight="bold", color=INK)
         ax.text(x + 1.15, 1.5, b, ha="center", va="center", fontsize=9, family="monospace", color=INK)
         if i < len(steps) - 1:
             ax.add_patch(FancyArrowPatch((x + 2.33, 1.8), (x + 2.72, 1.8), arrowstyle="-|>", mutation_scale=16,
-                                         color=STYLE["resolved"]["color"], lw=2))
+                                         color=MUTED, lw=2))
     ax.text(6.9, 0.35, "not certain? do not link. A candidate is a lead, never a fact — leave the site unknown.",
-            ha="center", fontsize=9.5, color=STYLE["unknown"]["color"])
+            ha="center", fontsize=9.5, color=MUTED)
     fig.savefig(path, bbox_inches="tight", facecolor=BG)
     plt.close(fig)
 
