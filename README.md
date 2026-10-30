@@ -15,6 +15,43 @@ By the end you will know:
 
 ---
 
+## What this repo answers
+
+| Question | Where it is answered |
+|---|---|
+| **Where and how can the commands be used?** | [What it is for](#what-it-is-for) below lists each command with the question it answers; [Part 3](#part-3-scenarios) runs every command in a concrete scenario (S1–S11) |
+| **What goes in, what comes out?** | Every scenario shows the exact command (**Run**) and its real output (**Output**), explained line by line (**How to read it**) |
+| **Where do you see the change reflected?** | [Where a change shows up](#where-a-change-shows-up) below; before/after comparison in [S8](#s8-ask-again-the-same-questions-now-have-answers); diagrams [before](diagrams/01-before-link.png) / [after](diagrams/02-after-link.png) |
+| **What kinds of things is it good for?** | [What it is for](#what-it-is-for): impact of a change, call chains, test selection, onboarding, closing gaps |
+| **How is certainty communicated to the agent?** | Graph → agent: every row is labelled `resolved` / `registered` / `asserted`, and gaps come back under `to resolve:` with a `bound:` warning ([Part 1](#three-kinds-of-edges), [S6](#s6-where-exactly-did-the-graph-stop), [Part 4](#part-4-reading-certainty-a-reference)). Agent → graph: `axiomcode link` records a call the agent is certain of, and `not:` rejects a lead ([S7](#s7-the-agent-closes-the-gap-with-axiomcode-link), [S11](#s11-undo-a-link-and-what-link-refuses)). Instructions to give the agent: [Part 5](#part-5-teach-your-agent) |
+| **Real examples and logs?** | Every output is copied from [`logs/`](logs/) (19 files, one per command), and each claim is checked against `pytest` under **Check it yourself** |
+
+## What it is for
+
+| You want to… | Command | Scenario |
+|---|---|---|
+| know who calls a function, what a change reaches, which tests cover it | `axiomcode impact <name>` | S2, S3, S5 |
+| see how A reaches B, hop by hop, with the code at each call | `axiomcode path <A> <B>` | S6, S8 |
+| run only the tests your uncommitted edits reach | `axiomcode tests` | S9 |
+| check what your uncommitted edits affect | `axiomcode impact` (no name) | S9 |
+| understand how a feature works, starting from a question in English | `axiomcode context "<question>" --source` | S4 |
+| find calls that text search misses (interfaces, dependency injection, callbacks) | `axiomcode impact <name>` | S3 |
+| record where an unresolved call goes, once the code makes it certain | `axiomcode link <file:line:col> <target>` | S7, S10, S11 |
+| browse the whole codebase as one interactive page | `axiomcode graph` | FAQ |
+
+## Where a change shows up
+
+| After you… | Look here | You see |
+|---|---|---|
+| run `axiomcode index` | `.axiomcode/` (derived; safe to delete) | the graph; edge counts per kind in the index output (S1) |
+| run `axiomcode link` | [`axiomcode-links.tsv`](axiomcode-links.tsv) at the repo root (commit it) | one row per link (S7) |
+| run `axiomcode link` | `axiomcode link` with no arguments | each link and its status: `applied`, `changed`, `moved` (S10) |
+| run `axiomcode link` | any `impact` / `path` / `tests` / `context` answer | edges labelled `[asserted]`, and `to resolve: nothing — settled by links` (S8) |
+| edit code | the next query | the graph refreshes on its own; `impact` with no name says `your edits: …` (S9) |
+| run `axiomcode graph` | `.axiomcode/graph/graph.html` | the whole graph in a browser |
+
+---
+
 ## Contents
 
 - [Run it yourself](#run-it-yourself)
