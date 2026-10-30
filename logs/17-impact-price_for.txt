@@ -1,0 +1,16 @@
+1. shop/service.py:24  [resolved · OrderService.place]
+   ```python
+     23      def place(self, sku: str, qty: int, channel: str) -> Order:
+   → 24          total = price_for(sku) * qty
+     25          self.payment.charge(total)
+     26          order = Order(self._next, sku, qty, total, channel)
+     27          self._next += 1
+     28          self.events.emit("order.placed", order)
+     29          return order
+   ```
+further away (1 place(s), reached through the places above; no code shown):
+   shop/api.py:10  place_order  [hop 2]
+tests that reach it (2; no code shown):
+   tests/test_pricing.py:8,9  test_pen_has_no_discount
+   tests/test_api.py:5  test_place_order_sends_email_receipt
+verified: ✓ (6 edge(s) looked up again)
