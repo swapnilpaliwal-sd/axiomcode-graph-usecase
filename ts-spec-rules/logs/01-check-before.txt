@@ -1,0 +1,25 @@
+✓ S1  Only a logged-in user can change notes.
+    checked 2 · all ok
+    ok   src/handlers/notes#createNote  src/handlers/notes.ts:9  
+    ok   src/handlers/notes#deleteNote  src/handlers/notes.ts:14  
+
+✗ S2  Every deletion of a note is written to the audit log.
+    checked 1 · 1 violation(s)
+    FAIL src/handlers/notes#deleteNote  src/handlers/notes.ts:14  deletes notes; must reach audit
+         unsure: the graph could not follow these calls on the way; the required call may hide behind one:
+           12 unresolved call site(s), named: Forbidden, filter, startsWith, String, push, findIndex, splice, Error, Number
+         read them; if one makes the target certain: axiomcode link <file:line:col> <target>, then re-check
+
+✗ S3  Only the store (src/store.ts) talks to the database driver.
+    checked 4 · 1 violation(s)
+    FAIL src/handlers/admin#exportAll  src/handlers/admin.ts:4  calls the driver directly
+    ok   src/store#SqlNoteStore.list  src/store.ts:10  
+    ok   src/store#SqlNoteStore.add  src/store.ts:14  
+    ok   src/store#SqlNoteStore.remove  src/store.ts:18  
+    lower bound: 16 unresolved call site(s) in src/; a caller hidden behind one of them is not listed
+
+✓ S4  Every admin endpoint checks that the caller is an admin.
+    checked 1 · all ok
+    ok   src/handlers/admin#exportAll  src/handlers/admin.ts:4  
+
+2 problem(s)

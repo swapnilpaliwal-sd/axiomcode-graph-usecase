@@ -7,6 +7,11 @@ The tour uses a tiny shop service (8 small Python files and 4 tests) so you can 
 and check it by hand. Every output shown below is **real**. It was copied from the files in [`logs/`](logs/),
 and you can reproduce all of it in about a minute.
 
+> **Second example: [From a spec to rules, checked against the graph (TypeScript)](ts-spec-rules/README.md).**
+> It turns a written spec ("every deletion is audited", "only the store talks to the driver") into rules that run
+> against the graph after every build, catches a new feature that breaks the spec while all tests still pass, and
+> shows how `axiomcode link` settles a rule that was unsure.
+
 By the end you will know:
 
 1. what each `axiomcode` command is for, and when to reach for it;
@@ -24,6 +29,7 @@ By the end you will know:
 | **Where do you see the change reflected?** | [Where a change shows up](#where-a-change-shows-up) below; before/after comparison in [S8](#s8-ask-again-the-same-questions-now-have-answers); diagrams [before](diagrams/01-before-link.png) / [after](diagrams/02-after-link.png) |
 | **What kinds of things is it good for?** | [What it is for](#what-it-is-for): impact of a change, call chains, test selection, onboarding, closing gaps |
 | **How is certainty communicated to the agent?** | Graph → agent: every row is labelled `resolved` / `registered` / `asserted`, and gaps come back under `to resolve:` with a `bound:` warning ([Part 1](#three-kinds-of-edges), [S6](#s6-where-exactly-did-the-graph-stop), [Part 4](#part-4-reading-certainty-a-reference)). Agent → graph: `axiomcode link` records a call the agent is certain of, and `not:` rejects a lead ([S7](#s7-the-agent-closes-the-gap-with-axiomcode-link), [S11](#s11-undo-a-link-and-what-link-refuses)). Instructions to give the agent: [Part 5](#part-5-teach-your-agent) |
+| **Can it check a spec, not just answer questions?** | [ts-spec-rules/](ts-spec-rules/README.md): each requirement becomes a SQL rule over the graph, checked after every build, with `ok` / `violation` / `unsure` |
 | **Real examples and logs?** | Every output is copied from [`logs/`](logs/) (19 files, one per command), and each claim is checked against `pytest` under **Check it yourself** |
 
 ## What it is for
@@ -38,6 +44,7 @@ By the end you will know:
 | find calls that text search misses (interfaces, dependency injection, callbacks) | `axiomcode impact <name>` | S3 |
 | record where an unresolved call goes, once the code makes it certain | `axiomcode link <file:line:col> <target>` | S7, S10, S11 |
 | browse the whole codebase as one interactive page | `axiomcode graph` | FAQ |
+| check written requirements against the code after every build | rules over `.axiomcode/out/graph.sqlite` | [ts-spec-rules](ts-spec-rules/README.md) |
 
 ## Where a change shows up
 
@@ -778,4 +785,5 @@ directories, files, functions and the calls between them.
 | `axiomcode-links.tsv` | The three links from S7 |
 | `logs/` | The raw output of every command in this README |
 | `diagrams/*.png` | The before / after / workflow pictures |
+| `ts-spec-rules/` | The second example: a TypeScript app, its spec, the rules and their checks |
 | `diagrams/make_diagrams.py` | Regenerates the pictures: `python3 diagrams/make_diagrams.py` (needs matplotlib) |

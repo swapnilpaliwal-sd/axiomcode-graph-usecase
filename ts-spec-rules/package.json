@@ -1,0 +1,9 @@
+{
+  "name": "notes-api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/*.test.ts",
+    "check": "axiomcode index > /dev/null && node --no-warnings rules/check.ts"
+  }
+}

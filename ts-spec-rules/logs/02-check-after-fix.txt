@@ -1,0 +1,22 @@
+✓ S1  Only a logged-in user can change notes.
+    checked 2 · all ok
+    ok   src/handlers/notes#createNote  src/handlers/notes.ts:10  
+    ok   src/handlers/notes#deleteNote  src/handlers/notes.ts:15  
+
+✓ S2  Every deletion of a note is written to the audit log.
+    checked 1 · all ok
+    ok   src/handlers/notes#deleteNote  src/handlers/notes.ts:15  
+
+✓ S3  Only the store (src/store.ts) talks to the database driver.
+    checked 4 · all ok
+    ok   src/store#SqlNoteStore.list  src/store.ts:11  
+    ok   src/store#SqlNoteStore.add  src/store.ts:15  
+    ok   src/store#SqlNoteStore.remove  src/store.ts:19  
+    ok   src/store#SqlNoteStore.all  src/store.ts:23  
+    lower bound: 16 unresolved call site(s) in src/; a caller hidden behind one of them is not listed
+
+✓ S4  Every admin endpoint checks that the caller is an admin.
+    checked 1 · all ok
+    ok   src/handlers/admin#exportAll  src/handlers/admin.ts:4  
+
+all requirements hold
