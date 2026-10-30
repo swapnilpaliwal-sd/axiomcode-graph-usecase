@@ -1,0 +1,10 @@
+$ sh ci/select-tests.sh main
+changed: test_discount_over_ten
+selected: tests/test_pricing.py
+running: pytest tests/test_pricing.py
+============================= test session starts ==============================
+collected 2 items
+
+tests/test_pricing.py ..                                                 [100%]
+
+============================== 2 passed in 0.13s ===============================

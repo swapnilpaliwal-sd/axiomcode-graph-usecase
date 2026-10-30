@@ -23,13 +23,13 @@ By the end you will know:
 
 | Question | Where it is answered |
 |---|---|
-| **Where and how can the commands be used?** | [What it is for](#what-it-is-for) below lists each command with the question it answers; [Part 3](#part-3-scenarios) runs every command in a concrete scenario (S1–S11) |
+| **Where and how can the commands be used?** | [What it is for](#what-it-is-for) below lists each command with the question it answers; [Part 3](#part-3-scenarios) runs every command in a concrete scenario (S1–S12) |
 | **What goes in, what comes out?** | Every scenario shows the exact command (**Run**) and its real output (**Output**), explained line by line (**How to read it**) |
 | **Where do you see the change reflected?** | [Where a change shows up](#where-a-change-shows-up) below; before/after comparison in [S8](#s8-ask-again-the-same-questions-now-have-answers); diagrams [before](diagrams/01-before-link.png) / [after](diagrams/02-after-link.png) |
 | **What kinds of things is it good for?** | [What it is for](#what-it-is-for): impact of a change, call chains, test selection, onboarding, closing gaps |
 | **How is certainty communicated to the agent?** | Graph → agent: every row is labelled `resolved` / `registered` / `asserted`, and gaps come back under `to resolve:` with a `bound:` warning ([Part 1](#three-kinds-of-edges), [S6](#s6-where-exactly-did-the-graph-stop), [Part 4](#part-4-reading-certainty-a-reference)). Agent → graph: `axiomcode link` records a call the agent is certain of, and `not:` rejects a lead ([S7](#s7-the-agent-closes-the-gap-with-axiomcode-link), [S11](#s11-undo-a-link-and-what-link-refuses)). Instructions to give the agent: [Part 5](#part-5-teach-your-agent) |
 | **Can it check a spec, not just answer questions?** | [spec-to-rule/](spec-to-rule/README.md): one requirement becomes one Datalog rule over the graph, run after every build |
-| **Real examples and logs?** | Every output is copied from [`logs/`](logs/) (19 files, one per command), and each claim is checked against `pytest` under **Check it yourself** |
+| **Real examples and logs?** | Every output is copied from [`logs/`](logs/) (22 files, one per command), and each claim is checked against `pytest` under **Check it yourself** |
 
 ## What it is for
 
@@ -38,6 +38,7 @@ By the end you will know:
 | know who calls a function, what a change reaches, which tests cover it | `axiomcode impact <name>` | S2, S3, S5 |
 | see how A reaches B, hop by hop, with the code at each call | `axiomcode path <A> <B>` | S6, S8 |
 | run only the tests your uncommitted edits reach | `axiomcode tests` | S9 |
+| run only the tests a pull request reaches, in GitHub Actions or Jenkins | `axiomcode tests --range origin/main..HEAD --json` | S12 |
 | check what your uncommitted edits affect | `axiomcode impact` (no name) | S9 |
 | understand how a feature works, starting from a question in English | `axiomcode context "<question>" --source` | S4 |
 | find calls that text search misses (interfaces, dependency injection, callbacks) | `axiomcode impact <name>` | S3 |
@@ -75,6 +76,7 @@ By the end you will know:
   - [S9. "I edited a file. Which tests do I run?"](#s9-i-edited-a-file-which-tests-do-i-run)
   - [S10. The code moves; the link follows](#s10-the-code-moves-the-link-follows)
   - [S11. Undo a link, and what `link` refuses](#s11-undo-a-link-and-what-link-refuses)
+  - [S12. CI: run only the tests a pull request reaches](#s12-ci-run-only-the-tests-a-pull-request-reaches)
 - [Part 4: Reading certainty, a reference](#part-4-reading-certainty-a-reference)
 - [Part 5: Teach your agent](#part-5-teach-your-agent)
 - [FAQ](#faq)
@@ -713,6 +715,163 @@ axiomcode link: rejected — no by-name or one-of-a-set lead at shop/events.py:1
 
 ---
 
+### S12. CI: run only the tests a pull request reaches
+
+**Situation.** Your suite takes 40 minutes. A pull request changes one function. You want CI to run the tests that
+change reaches and skip the rest, in GitHub Actions or Jenkins.
+
+`axiomcode tests` (S9) looks at uncommitted edits. In CI the change is already committed, so give it a range:
+`--range origin/main..HEAD` compares the branch's own commits against where it forked from `main`. `--json` gives a
+machine-readable answer.
+
+**The script** ([`ci/select-tests.sh`](ci/select-tests.sh))
+
+```sh
+#!/bin/sh
+# Run only the tests that the changes since BASE reach.
+#   sh ci/select-tests.sh origin/main
+# Falls back to the whole suite when it cannot tell (no code changed that the graph knows, or an error).
+set -e
+BASE=${1:-origin/main}
+FULL="python3 -m pytest -q"
+
+axiomcode index > /dev/null
+axiomcode tests --range "$BASE..HEAD" --json > selection.json || { echo "selection failed: whole suite"; exec $FULL; }
+
+CMD=$(python3 -c '
+import json, sys
+s = json.load(open("selection.json"))
+changed = [c["symbol"] for c in s["changed"]]
+print("changed:", ", ".join(changed) or "nothing the graph indexes", file=sys.stderr)
+print("selected:", ", ".join(s["test_files"]) or "none", file=sys.stderr)
+print(s["command"] or "")
+')
+
+if [ -z "$CMD" ]; then
+  echo "no test reaches the change: whole suite"
+  exec $FULL
+fi
+echo "running: $CMD"
+exec sh -c "$CMD"
+```
+
+The fields it reads from `selection.json`:
+
+| Field | Example | Meaning |
+|---|---|---|
+| `changed` | `[{"symbol": "notify_email", "kind": "body"}]` | the declarations the range changed |
+| `test_files` | `["tests/test_api.py"]` | the test files that reach them |
+| `tests` | each test with `chain` and `certainty` | why each test was picked: the call chain from test to change |
+| `command` | `"pytest tests/test_api.py"` | the command that runs exactly those tests (`mvn -Dtest=…`, `dotnet test --filter …`, `jest …` in other languages) |
+
+**GitHub Actions** ([`.github/workflows/selected-tests.yml`](.github/workflows/selected-tests.yml))
+
+```yaml
+on:
+  pull_request:          # pull requests: only the tests the change reaches
+  push:
+    branches: [main]     # main: the whole suite, as a safety net
+  schedule:
+    - cron: "0 3 * * *"  # nightly: the whole suite
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0               # the base branch's history, for --range
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - run: pip install pytest && npm i -g @axiomcode/code-graph
+
+      - name: Selected tests (pull request)
+        if: github.event_name == 'pull_request'
+        run: sh ci/select-tests.sh origin/${{ github.base_ref }}
+
+      - name: Whole suite (main, nightly)
+        if: github.event_name != 'pull_request'
+        run: python3 -m pytest -q
+```
+
+**Jenkins** ([`ci/Jenkinsfile`](ci/Jenkinsfile), multibranch pipeline)
+
+```groovy
+stage('Selected tests') {
+  when { changeRequest() }             // pull requests only
+  steps {
+    sh 'git fetch --no-tags origin ${CHANGE_TARGET}:refs/remotes/origin/${CHANGE_TARGET}'
+    sh 'sh ci/select-tests.sh origin/${CHANGE_TARGET}'
+  }
+}
+stage('Whole suite') {
+  when { not { changeRequest() } }     // main and nightly
+  steps { sh 'python3 -m pytest -q' }
+}
+```
+
+`CHANGE_TARGET` is the branch the pull request merges into. The `git fetch` is there because Jenkins often clones
+only the pull request's branch.
+
+**Output: a pull request that changes `notify_email`** ([`logs/19-ci-code-change.txt`](logs/19-ci-code-change.txt))
+
+```console
+$ sh ci/select-tests.sh main
+changed: notify_email
+selected: tests/test_api.py
+running: pytest tests/test_api.py
+collected 1 item
+
+tests/test_api.py .                                                      [100%]
+============================== 1 passed in 0.15s ===============================
+```
+
+1 of 4 tests ran. `test_pricing` and `test_notify` were skipped: they never reach `notify_email`.
+
+**Output: a pull request that edits a test** ([`logs/21-ci-test-edit.txt`](logs/21-ci-test-edit.txt))
+
+```console
+changed: test_discount_over_ten
+selected: tests/test_pricing.py
+running: pytest tests/test_pricing.py
+```
+
+An edited test always runs.
+
+**Output: a pull request that only edits `README.md`** ([`logs/20-ci-docs-only.txt`](logs/20-ci-docs-only.txt))
+
+```console
+changed: nothing the graph indexes
+selected: none
+no test reaches the change: whole suite
+....                                                                     [100%]
+4 passed in 0.09s
+```
+
+When no indexed code changed (docs, config, a build file), the script runs everything. That is the safe default:
+a config change can break tests without touching a function. If you are sure docs never break tests, skip the job
+for those paths with `paths-ignore: ["**.md"]` in GitHub Actions.
+
+**How to read it**
+
+| Part | Meaning |
+|---|---|
+| `--range origin/main..HEAD` | the branch's own commits, compared from where it forked; commits that landed on `main` later do not count |
+| `fetch-depth: 0` / `git fetch … CHANGE_TARGET` | the base branch must be in the clone, or the range has nothing to compare against |
+| `bound: … a LOWER bound` (in the text answer) | a test that reaches the change only through reflection, a subprocess or a framework loading by name is not listed |
+| whole suite on `main` and nightly | the safety net for that lower bound: anything the selection skipped still runs before release |
+| `selection.json` archived | a reviewer can see why each test was picked (`chain`) |
+
+**Check it yourself.** In a clone, make a branch, change the body of `notify_email`, commit, and run
+`sh ci/select-tests.sh main`. Then run `python3 -m pytest -q` to see that the skipped tests did not need running.
+
+**Takeaway.** Pull requests run the tests their change reaches. `main` and the nightly run still run everything, so a
+test the selection could not see is caught before release.
+
+---
+
 ## Part 4: Reading certainty, a reference
 
 ### Labels on answer rows
@@ -795,5 +954,6 @@ directories, files, functions and the calls between them.
 | `axiomcode-links.tsv` | The three links from S7 |
 | `logs/` | The raw output of every command in this README |
 | `diagrams/*.png` | The before / after / workflow pictures |
+| `ci/select-tests.sh`, `ci/Jenkinsfile`, `.github/workflows/selected-tests.yml` | Test selection in CI (S12) |
 | `spec-to-rule/` | The second example: one spec sentence, one rule, three TypeScript files |
 | `diagrams/make_diagrams.py` | Regenerates the pictures: `python3 diagrams/make_diagrams.py` (needs matplotlib) |

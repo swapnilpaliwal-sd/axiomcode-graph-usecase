@@ -1,0 +1,31 @@
+name: tests
+
+on:
+  pull_request:          # pull requests: only the tests the change reaches
+  push:
+    branches: [main]     # main: the whole suite, as a safety net
+  schedule:
+    - cron: "0 3 * * *"  # nightly: the whole suite
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0               # the base branch's history, for --range
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: pip install pytest && npm i -g @axiomcode/code-graph
+
+      - name: Selected tests (pull request)
+        if: github.event_name == 'pull_request'
+        run: sh ci/select-tests.sh origin/${{ github.base_ref }}
+
+      - name: Whole suite (main, nightly)
+        if: github.event_name != 'pull_request'
+        run: python3 -m pytest -q

@@ -1,3 +1,4 @@
 .axiomcode/
 __pycache__/
 .pytest_cache/
+selection.json

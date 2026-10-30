@@ -1,0 +1,24 @@
+// Multibranch pipeline. On a pull request, CHANGE_TARGET is the branch it merges into.
+pipeline {
+  agent any
+  triggers { cron('H 3 * * *') }           // nightly: the whole suite
+  stages {
+    stage('Setup') {
+      steps {
+        sh 'pip install pytest && npm i -g @axiomcode/code-graph'
+      }
+    }
+    stage('Selected tests') {
+      when { changeRequest() }             // pull requests only
+      steps {
+        sh 'git fetch --no-tags origin ${CHANGE_TARGET}:refs/remotes/origin/${CHANGE_TARGET}'
+        sh 'sh ci/select-tests.sh origin/${CHANGE_TARGET}'
+      }
+    }
+    stage('Whole suite') {
+      when { not { changeRequest() } }     // main and nightly
+      steps { sh 'python3 -m pytest -q' }
+    }
+  }
+  post { always { archiveArtifacts artifacts: 'selection.json', allowEmptyArchive: true } }
+}

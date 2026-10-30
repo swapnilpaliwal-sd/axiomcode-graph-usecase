@@ -1,0 +1,7 @@
+$ sh ci/select-tests.sh main
+changed: nothing the graph indexes
+selected: none
+no test reaches the change: whole suite
+....                                                                     [100%]
+4 passed in 0.09s
+exit 0
